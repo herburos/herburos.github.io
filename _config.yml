@@ -1,8 +1,8 @@
 title: Stack Problems
 description: My Personal Stack Problems
-author: Agus Makmun
-github: https://github.com/agusmakmun
-about: I'm Programmer for Python & Django. I've made quite a few web apps, especially on Django.
+author: Alborz Samadi
+github: https://github.com/herburos
+about: I'm a passionate software engineer.
 disqus_shortname: stackproblems
 google_analytics: UA-XXXXXXXX-Y
 
@@ -27,7 +27,7 @@ social:
       link: "https://github.com/herburos"
 
 share:
-  twitter_username: github.io
+  twitter_username: herburos
   fb_appid: 1749788565247320
 
 urls:
