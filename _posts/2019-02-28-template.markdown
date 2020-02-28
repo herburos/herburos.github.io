@@ -1,0 +1,47 @@
+---
+layout: post
+title:  "This is a template page"
+date:   2019-02-28 00:18:23 +0700
+categories: [template]
+---
+This is a simple paragraph
+
+## h2 header
+Lists:
++ <em> emphasized </em> - descrption
++ <em> second </em> - description with `highlight`.
+
+### h3 header
+Code snippet
+{% highlight java %}
+public static void main(String[] args) {
+    System.out.println("Hello World");
+}
+{% endhighlight %}
+
+```
+highlight with box here you can add scripts and shell commands
+```
+`simple highlight`
+
+-----
+here is a separate section.
+**1.** you can add images like this:
+
+![Screenshot broadcast](https://raw.githubusercontent.com/agusmakmun/agusmakmun.github.io/master/static/img/_posts/Broadcast_Mail.png  "Screenshot broadcast")
+
+-----
+
+you can also embed iframe inside your blog post:
+
+<iframe width="100%" height="350" src="//jsfiddle.net/agaust/3qz105nn/embedded/html,result/dark/" allowfullscreen="allowfullscreen" frameborder="0"></iframe>
+
+-----
+
+Now you can have a [link][reference] to a reference. and here is the [second][second2] reference.
+
+**Reference:**
+
+* [reference](http://herburos.github.com)
+
+[second2]: http://herburos.github.com
