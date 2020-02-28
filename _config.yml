@@ -16,13 +16,13 @@ collections:
 
 social:
     - icon: fa-facebook
-      link: "#"
+      link: "https://www.facebook.com/herburos"
     - icon: fa-twitter
-      link: "#"
+      link: "https://twitter.com/herburos"
     - icon: fa-linkedin
-      link: "#"
-    - icon: fa-stack-exchange
-      link: "#"
+      link: "https://www.linkedin.com/in/alborz-samadi-3a5a9b36/"
+    - icon: fa-stack-overflow
+      link: "https://stackoverflow.com/users/2310398/herburos"
     - icon: fa-github
       link: "https://github.com/herburos"
 
