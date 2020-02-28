@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "This is a template page"
-date:   2019-02-28 00:18:23 +0700
+date:   2020-02-28 00:18:23 +0700
 categories: [template]
 ---
 This is a simple paragraph
@@ -38,13 +38,8 @@ you can also embed iframe inside your blog post:
 
 -----
 
-Now you can have a [Reference No1][reference1] to a reference. and here is the [second][second2] reference.
+Now you can have a [Reference No1](http://herburos.github.com) to a reference.
 
 **Reference:**
 
-[reference1](http://herburos.github.com)
-[second2]: http://herburos.github.com
-
-Check out the [Jekyll docs][jekyll] for more info on how to get the most out of Jekyll. File all bugs/feature requests at [Jekyll's GitHub repo][jekyll-gh].	
-[jekyll-gh]: https://github.com/mojombo/jekyll	
-[jekyll]:    http://jekyllrb.com
+* [My own blog link](http://herburos.github.com)
