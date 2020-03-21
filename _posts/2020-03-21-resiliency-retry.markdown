@@ -1,40 +1,49 @@
 ---
 layout: post
-title:  "Use retry judiciously"
+title:  "Resiliency Patterns [Part 1]: Use Retry Judiciously"
 date:   2020-03-21 22:21:23 +0700
-categories: [resilience]
+categories: [resiliency]
 ---
 
 *Failure is simply the opportunity to begin again, only this time more wisely.* 
     **-Henry Ford**
 
-## When should I use retry?
-- use retry with care, in a sparse manner
-- retry policy usually depends on business requirements and nature of the failure
-- idempotent actions are potentially appropriate for retry
-- transient failures ( momentary network loss or temporal service unavailability)
-- it is likely to succeed a failed action when repeated
-- for extremely unusual failures (like network packet corruption)
-- retry should not be used as a solution to scalability issues
+# Be aware of the business requirements
 
-## What should I be causious about?
+**- Is this functionality critical for your business?**
+If fulfiling a request is not critical for your business or some type of failover functionality such as hitting a cache or service degradation(fail-over) is enough, you may completely ignore the retrying and opt for those alternatives or event let it crash! As a rule of thumb for non critical applications it is better to failfast rather than risking the throughput and response time.
+You also have to ask yourself is it likely to succeed a failed action when repeated?
+Retry should not be used as a solution to scalability issues
+
+**- Consider your latency budget:**
+Retries usually are better suited for usecases that does not have any constraint on response time, for example, offline batch processing can be a good context for retries, in fact using retries properly in such systems can save you a lot of time because failing in any step of your batch jobs can cause the whole pipeline to halt and may require a manual fix.
+So it is important to consider your latency and throughput constraints and make proper calculations on how much time you can 'waste' on retrying. As a mater of fact, latency is not the only issue, retrying can impose extra load on your system and you should make tradeoffs between higher success rate and the amount of resources used for retrying. 
+Another concept you have to be aware of is `cascading retries`. what happens if other downstream or upstream services use retry too? You have to consider that in your timeout and backoff strategies. 
+These are some of the reasons execution context is important.
+
+
+# Be aware of the operational characteristics
+**- Is this operation idempotent?**
+Retries are mostly applicable to idempotent operations. (CRDT)
+
+# Be aware of the nature of the failure
+
+**- Is this a long-term or a short-term failure?**
+Retries are effective if your failure is transient and there is a high chance of success in your next retries. The most related transient failures are momentary network partitioning and temporal service unavailability. In these two cases retry can help you recover from a short-term failure.
+For extremely unusual failures (like network packet corruption)
+
+## What should I be cautious about?
+- use timeouts (too short timeout causes premature failure)
 - If you continually overwhelm a service with retry requests, it will take the service longer to recover
 - you should log the details of failure and your retry execution
 - for transactions be careful with consistency and the tradeoff between retry and rollback costs
-- be cautious about the latency and throughput constraints of your application when implementing a retry policy
-- retry only when the full context is well understood. better make lower level tasks fail fast (cascading retries)
 - be specific about the situations that you want to retry (white/black list mechanism)
-- as a rule of thumb for non critical applications it is better to failfast rather than risking the throughput and response time
-- batch processing is a better place to use retry compared to real-time services
-- you can adjust the delay time based on the nature of the failure (long/short term)
 - it is a good practice to retry behind a circuit breaker for better failure management
-- instead of retrying the same action you can either switch to an alternative action or be satisfied with a degraded functionality (reduce consistency level)
 - retry storm : self-inflicted denial-of-service attack
 - retry budget: the ratio between regular requests and retries
-- retry policy tradeoff is between improving success rate and adding extra load to system
-
+- retry with async can cause problems in ordering of messages in message queues
 
 **Reference:**
 
-* [resilience4j](https://resilience4j.readme.io/docs/retry)
-* [Microsoft](https://docs.microsoft.com/en-us/azure/architecture/patterns/retry)
+* [Resilience4j Library](https://resilience4j.readme.io/docs/retry)
+* [Microsoft Retry Pattern](https://docs.microsoft.com/en-us/azure/architecture/patterns/retry)
