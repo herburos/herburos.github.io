@@ -30,7 +30,7 @@ Retries are mostly applicable to idempotent operations. (CRDT)
 
 **- Is this a long-term or a short-term failure?**
 Retries are effective if your failure is transient and there is a high chance of success in your next retries. The most related transient failures are momentary network partitioning and temporal service unavailability. In these two cases retry can help you recover from a short-term failure.
-For extremely unusual failures (like network packet corruption)
+Retries can also be effective for extremely unusual failures (like network packet corruption).
 
 ## What should I be cautious about?
 - use timeouts (too short timeout causes premature failure)
@@ -42,6 +42,33 @@ For extremely unusual failures (like network packet corruption)
 - retry storm : self-inflicted denial-of-service attack
 - retry budget: the ratio between regular requests and retries
 - retry with async can cause problems in ordering of messages in message queues
+
+## Case Study 1 - AWS Lambda Functions
+Using lambda functions, many issues can result retires and duplicated requests, to prepare for these occurrences your function must always be `idempotent`.
+
+When you invoke a lambda function (either directly or indirectly) two types of errors can occur:
+
+**1.** <em>Invocation Errors:</em> when the invocation request is rejected before your function receives it.
+
+**2.** <em>Function Errors:</em> when your function's code or runtime returns an error.
+
+Depending on the type of error (`Invocation Error` | `Function Error`), the type of invocation (`Sync` | `Async` | `Event Source Mappings`), and the client or service that invokes the function, the retry behavior and the strategy for managing errors varies.
+For instance, AWS CLI by default retry on client timeouts, throttling errors (429), and 5XX errors.
+
+For indirect function calls the situation becomes more complex:
+
+**1.** <em>Async Invocation:</em> Lambda retries function errors twice by default, but fortunately you can configure the retry behavior:
+The following example configures a function with a maximum event age of 1 hour and no retries.
+{% highlight bash %}
+$ aws lambda put-function-event-invoke-config --function-name myfunction \
+--maximum-event-age-in-seconds 3600 --maximum-retry-attempts 0
+{% endhighlight %}
+
+**2.** <em>Event Source Mapping:</em> In this case the entire batch with be retried until the error is resolved or the items expire(up to 6hrs).
+
+**3.** <em>AWS Services:</em> if your functions are synchronously invoked by other services, the service decides whether to retry. And in asynchronous invocations it is the same as 1.
+
+To make the situation worse, due to queues being eventually consistent, you may receive an event multiple times, so you should always insure that your functions can handle duplicates.
 
 **Reference:**
 
