@@ -43,6 +43,7 @@ Retries can also be effective for extremely unusual failures (like network packe
 - retry storm : self-inflicted denial-of-service attack
 - retry budget: the ratio between regular requests and retries
 - retry with async can cause problems in ordering of messages in message queues
+- use jitter
 
 ## Case Study 1 - AWS Lambda Functions
 Using lambda functions, many issues can result retires and duplicated requests, to prepare for these occurrences your function must always be `idempotent`.
@@ -54,7 +55,7 @@ When you invoke a lambda function (either directly or indirectly) two types of e
 **2. Function Errors:** when your function's code or runtime returns an error.
 
 Depending on the type of error (`Invocation Error` | `Function Error`), the type of invocation (`Sync` | `Async` | `Event Source Mappings`), and the client or service that invokes the function, the retry behavior and the strategy for managing errors varies.
-For instance, AWS CLI by default retrys on client timeouts, throttling errors (429), and 5XX errors.
+For instance, AWS CLI by default retrys on client timeouts, throttling errors (429), and 5XX type of errors.
 
 For indirect function calls the situation becomes more complex:
 
@@ -105,5 +106,7 @@ There are a few cases where retrying is always the right thing to do. These are 
 
 **Reference:**
 
+* [Cassandra DataStax Driver Manual](https://docs.datastax.com/en/developer/java-driver/4.3/manual/)
+* [AWS Lambda Documentation](https://docs.aws.amazon.com/lambda/index.html)
 * [Resilience4j Library](https://resilience4j.readme.io/docs/retry)
 * [Microsoft Retry Pattern](https://docs.microsoft.com/en-us/azure/architecture/patterns/retry)
