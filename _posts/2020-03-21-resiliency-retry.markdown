@@ -67,7 +67,7 @@ $ aws lambda put-function-event-invoke-config --function-name myfunction \
 
 **2. Event Source Mapping:** In this case the entire batch will be retried until the error is resolved or the items expire (may take up to 6hrs).
 
-**3. <em>AWS Services:** if your functions are synchronously invoked by other services, the service decides whether to retry. And in asynchronous invocations it is the same as 1.
+**3. AWS Services:** if your functions are synchronously invoked by other services, the service decides whether to retry. And in asynchronous invocations it is the same as 1.
 
 To make the situation worse, due to queues being eventually consistent, you may receive an event multiple times, so you should always insure that your functions can handle duplicates.
 
@@ -89,7 +89,7 @@ BuiltStatement s = update("mytable").with(set("v", fcall("anIdempotentFunc"))).w
 s.setIdempotent(true);
 {% endhighlight %}
 
-`RetryPolicy` is a pluggable component that is configured when initializing the cluster. If you don't explicitly configure it, you get a `DefaultRetryPolicy` which is conservative in that it will never retry with a different consistency level (`service degradation`) than the one of the initial operation.
+[`RetryPolicy`](https://docs.datastax.com/en/drivers/java/3.6/com/datastax/driver/core/policies/RetryPolicy.html) is a pluggable component that is configured when initializing the cluster. If you don't explicitly configure it, you get a `DefaultRetryPolicy` which is conservative in that it will never retry with a different consistency level (`service degradation`) than the one of the initial operation.
 
 {% highlight java %}
 Cluster cluster = Cluster.builder()
@@ -99,7 +99,7 @@ Cluster cluster = Cluster.builder()
 RetryPolicy policy = cluster.getConfiguration().getPolicies().getRetryPolicy();
 {% endhighlight %}
 
-The policy's methods cover different types of errors including `OnUnavailable`, `onReadTimeout`, `onWriteTimeout`, and `onRequestError` which you should implement - considering the idempotency of the statement given as input parameter - and returning a `RetryDecision` with three possible decisions (`RETHROW` | `RETRY` | `IGNORE`).
+The policy's methods cover different types of errors including `OnUnavailable`, `onReadTimeout`, `onWriteTimeout`, and `onRequestError` which you should implement considering the idempotency of the statement given as input parameter and returning a [`RetryDecision`](https://docs.datastax.com/en/drivers/java/3.6/com/datastax/driver/core/policies/RetryPolicy.RetryDecision.html) with three possible decisions (`RETHROW` | `RETRY` | `IGNORE`) .
 
 There are a few cases where retrying is always the right thing to do. These are hard-coded in the driver itself. For example, if any error occures before writing to network it is always safe to retry since the request is not sent yet; or when the driver executes a prepared statement that the coordinator doesn't know about it, and needs to re-prepare it on the fly. On the other hand some errors have no chance of being solved by retry like `QueryValidationException` or `TruncateException`.
 
