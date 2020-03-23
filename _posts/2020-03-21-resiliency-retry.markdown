@@ -11,7 +11,7 @@ categories: [resiliency, advanced]
 # Be aware of the business requirements
 
 **- Is this functionality critical for your business?**
-If fulfiling a request is not critical for your business or some type of failover functionality such as hitting a cache or service degradation(fail-over) is enough, you may completely ignore the retrying and opt for those alternatives or event let it crash! As a rule of thumb for non critical applications it is better to failfast rather than risking the throughput and response time.
+If fulfiling a request is not critical for your business or some type of failover functionality such as hitting a cache or service degradation is enough, you may completely ignore the retrying and opt for those alternatives or even let it crash! As a rule of thumb for non critical applications it is better to failfast rather than risking the throughput and response time.
 You also have to ask yourself is it likely to succeed a failed action when repeated?
 Retry should not be used as a solution to scalability issues
 
