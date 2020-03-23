@@ -99,7 +99,7 @@ Cluster cluster = Cluster.builder()
 RetryPolicy policy = cluster.getConfiguration().getPolicies().getRetryPolicy();
 {% endhighlight %}
 
-The policy's methods cover different types of errors including `OnUnavailable`, `onReadTimeout`, `onWriteTimeout`, and `onRequestError` which you should implement considering the idempotency of the statement given as input parameter and returning a [`RetryDecision`](https://docs.datastax.com/en/drivers/java/3.6/com/datastax/driver/core/policies/RetryPolicy.RetryDecision.html) with three possible decisions (`RETHROW` | `RETRY` | `IGNORE`) .
+The policy's methods cover different types of errors including `OnUnavailable`, `onReadTimeout`, `onWriteTimeout`, and `onRequestError` which you should implement considering the idempotency of the statement given as input parameter and returning a [`RetryDecision`](https://docs.datastax.com/en/drivers/java/3.6/com/datastax/driver/core/policies/RetryPolicy.RetryDecision.html) with three possible decisions which are RETHROW, RETRY and IGNORE.
 
 There are a few cases where retrying is always the right thing to do. These are hard-coded in the driver itself. For example, if any error occures before writing to network it is always safe to retry since the request is not sent yet; or when the driver executes a prepared statement that the coordinator doesn't know about it, and needs to re-prepare it on the fly. On the other hand some errors have no chance of being solved by retry like `QueryValidationException` or `TruncateException`.
 
