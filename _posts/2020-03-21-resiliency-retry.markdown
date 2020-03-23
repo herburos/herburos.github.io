@@ -11,9 +11,9 @@ categories: [resiliency, advanced]
 # Be aware of the business requirements
 
 **- Is this functionality critical for your business?**
-If fulfiling a request is not critical for your business or some type of failover functionality such as hitting a cache or service degradation is enough, you may completely ignore the retrying and opt for those alternatives or even let it crash! As a rule of thumb for non critical applications it is better to failfast rather than risking the throughput and response time.
+If fulfiling a request is not critical for your business or some type of failover functionality such as hitting a cache or service degradation is enough, you may completely ignore the retrying and opt for those alternatives or even let it crash! As a rule of thumb, for non-critical applications it is better to fail fast rather than risking throughput and response time.
 You also have to ask yourself is it likely to succeed a failed action when repeated?
-Retry should not be used as a solution to scalability issues
+Also be aware that if you have scalability issues retry should not be used as a remedy.
 
 **- Consider your latency budget:**
 Retries usually are better suited for usecases that does not have any constraint on response time, for example, offline batch processing can be a good context for retries, in fact using retries properly in such systems can save you a lot of time because failing in any step of your batch jobs can cause the whole pipeline to halt and may require a manual fix.
@@ -25,7 +25,7 @@ These are some of the reasons execution context is important.
 # Be aware of the operational characteristics
 **- Is this operation idempotent?**
 A function is `idempotent` if it can be applied multiple times without changing the result of the initial application.
-Retries are mostly applicable to idempotent operations. (CRDT)
+Retries are mostly applicable to idempotent operations. (TODO: CRDT)
 
 # Be aware of the nature of the failure
 
@@ -38,12 +38,12 @@ Retries can also be effective for extremely unusual failures (like network packe
 - If you continually overwhelm a service with retry requests, it will take the service longer to recover
 - you should log the details of failure and your retry execution
 - for transactions be careful with consistency and the tradeoff between retry and rollback costs
-- be specific about the situations that you want to retry (white/black list mechanism)
+- be specific about the situations that you want to retry (a white/black list mechanism)
 - it is a good practice to retry behind a circuit breaker for better failure management
 - retry storm : self-inflicted denial-of-service attack
 - retry budget: the ratio between regular requests and retries
 - retry with async can cause problems in ordering of messages in message queues
-- use jitter
+- use jitter with back-off to alleviate global retry synchronization
 
 ## Case Study 1 - AWS Lambda Functions
 Using lambda functions, many issues can result retires and duplicated requests, to prepare for these occurrences your function must always be `idempotent`.
