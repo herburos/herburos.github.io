@@ -2,7 +2,7 @@
 layout: post
 title:  "Resiliency Patterns [Part 1]: Use Retry Judiciously"
 date:   2020-03-21 22:21:23 +0700
-categories: [resiliency]
+categories: [resiliency, advanced]
 ---
 
 *Failure is simply the opportunity to begin again, only this time more wisely.* 
@@ -24,6 +24,7 @@ These are some of the reasons execution context is important.
 
 # Be aware of the operational characteristics
 **- Is this operation idempotent?**
+A function is `idempotent` if it can be applied multiple times without changing the result of the initial application.
 Retries are mostly applicable to idempotent operations. (CRDT)
 
 # Be aware of the nature of the failure
@@ -48,27 +49,59 @@ Using lambda functions, many issues can result retires and duplicated requests, 
 
 When you invoke a lambda function (either directly or indirectly) two types of errors can occur:
 
-**1.** <em>Invocation Errors:</em> when the invocation request is rejected before your function receives it.
+**1. Invocation Errors:** when the invocation request is rejected before your function receives it.
 
-**2.** <em>Function Errors:</em> when your function's code or runtime returns an error.
+**2. Function Errors:** when your function's code or runtime returns an error.
 
 Depending on the type of error (`Invocation Error` | `Function Error`), the type of invocation (`Sync` | `Async` | `Event Source Mappings`), and the client or service that invokes the function, the retry behavior and the strategy for managing errors varies.
-For instance, AWS CLI by default retry on client timeouts, throttling errors (429), and 5XX errors.
+For instance, AWS CLI by default retrys on client timeouts, throttling errors (429), and 5XX errors.
 
 For indirect function calls the situation becomes more complex:
 
-**1.** <em>Async Invocation:</em> Lambda retries function errors twice by default, but fortunately you can configure the retry behavior:
+**1. Async Invocation:** Lambda retries function errors twice by default, but fortunately you can configure the retry behavior:
 The following example configures a function with a maximum event age of 1 hour and no retries.
 {% highlight bash %}
 $ aws lambda put-function-event-invoke-config --function-name myfunction \
 --maximum-event-age-in-seconds 3600 --maximum-retry-attempts 0
 {% endhighlight %}
 
-**2.** <em>Event Source Mapping:</em> In this case the entire batch with be retried until the error is resolved or the items expire(up to 6hrs).
+**2. Event Source Mapping:** In this case the entire batch will be retried until the error is resolved or the items expire (may take up to 6hrs).
 
-**3.** <em>AWS Services:</em> if your functions are synchronously invoked by other services, the service decides whether to retry. And in asynchronous invocations it is the same as 1.
+**3. <em>AWS Services:** if your functions are synchronously invoked by other services, the service decides whether to retry. And in asynchronous invocations it is the same as 1.
 
 To make the situation worse, due to queues being eventually consistent, you may receive an event multiple times, so you should always insure that your functions can handle duplicates.
+
+## Case Study 2 - Cassandra RetryPolicy
+Cassandra is definitely my favorite when it comes to implementing retry policies! The reason is that you have to specify (either explicitly or implicitly) the idempotency of any operation you perform. The byproduct is that you can define your retry policies once based on the idempotency of an action without knowing about the action itself.
+You can create statements yourself or use a QueryBuilder to build one for you:
+
+`Statements` start out as non-idempotent by default (which you can change but I dont recommend), but you can override the flag on each statement.
+
+{% highlight java %}
+Statement s = new SimpleStatement("SELECT * FROM users WHERE id = 1");
+s.setIdempotent(true);
+{% endhighlight %}
+
+`QueryBuilder` DSL also tries to infer the idempotency of your statement in a conservative way but you can set idempotency on that too.
+
+{% highlight java %}
+BuiltStatement s = update("mytable").with(set("v", fcall("anIdempotentFunc"))).where(eq("k", 1));
+s.setIdempotent(true);
+{% endhighlight %}
+
+`RetryPolicy` is a pluggable component that is configured when initializing the cluster. If you don't explicitly configure it, you get a `DefaultRetryPolicy` which is conservative in that it will never retry with a different consistency level (`service degradation`) than the one of the initial operation.
+
+{% highlight java %}
+Cluster cluster = Cluster.builder()
+        ...
+        .withRetryPolicy(new MyCustomPolicy())
+        .build();
+RetryPolicy policy = cluster.getConfiguration().getPolicies().getRetryPolicy();
+{% endhighlight %}
+
+The policy's methods cover different types of errors including `OnUnavailable`, `onReadTimeout`, `onWriteTimeout`, and `onRequestError` which you should implement - considering the idempotency of the statement given as input parameter - and returning a `RetryDecision` with three possible decisions (`RETHROW` | `RETRY` | `IGNORE`).
+
+There are a few cases where retrying is always the right thing to do. These are hard-coded in the driver itself. For example, if any error occures before writing to network it is always safe to retry since the request is not sent yet; or when the driver executes a prepared statement that the coordinator doesn't know about it, and needs to re-prepare it on the fly. On the other hand some errors have no chance of being solved by retry like `QueryValidationException` or `TruncateException`.
 
 **Reference:**
 
